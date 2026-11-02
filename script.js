@@ -85,3 +85,11 @@ function checkBurger() {
 
 // Sayfa yüklendiğinde oyunu başlat
 window.onload = startGame;
+// Service Worker Kaydı (Uygulama olarak yüklenmesini sağlar)
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js')
+      .then((reg) => console.log('Service Worker kayıtlı:', reg))
+      .catch((err) => console.log('Service Worker hatası:', err));
+  });
+}
