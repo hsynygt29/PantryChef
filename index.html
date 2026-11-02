@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PantryChef - Tarif Asistanı</title>
+  <!-- CSS dosyamızı bağladığımız yer -->
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- Üst Başlık Alanı -->
+  <header>
+    <h1>🍳 PantryChef</h1>
+    <p>Elinizdeki malzemeleri seçin, yapabileceğiniz tarifleri anında keşfedin!</p>
+  </header>
+
+  <!-- Ana İçerik Konteyneri -->
+  <main class="container">
+    
+    <!-- 1. Malzeme Ekleme ve Seçim Bölümü -->
+    <section class="pantry-section">
+      <h2>Malzeme Dolabım</h2>
+      <div class="input-group">
+        <input type="text" id="ingredientInput" placeholder="Malzeme ekleyin (ör: Domates)..." />
+        <button id="addBtn">Ekle</button>
+      </div>
+      
+      <!-- Eklenen malzemelerin buton/rozet olarak görüneceği kutu -->
+      <div id="selectedBadges" class="badges-container"></div>
+
+      <!-- Tarif Arama Butonu -->
+      <button id="searchRecipesBtn" class="primary-btn">Tarif Bul</button>
+    </section>
+
+    <!-- 2. Sonuçların Ekrana Basılacağı Tarif Bölümü -->
+    <section class="recipes-section">
+      <h2>Önerilen Tarifler</h2>
+      <div id="recipeGrid" class="recipe-grid">
+        <!-- JavaScript ile eşleşen tarif kartları buraya dolacak -->
+      </div>
+    </section>
+  </main>
+
+  <!-- JavaScript dosyamızı bağladığımız yer -->
+  <script src="script.js"></script>
+</body>
+</html>
