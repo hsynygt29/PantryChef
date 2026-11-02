@@ -1,104 +1,87 @@
-// 1. ÖRNEK TARİF VERİTABANI (Daha sonra buraya 50 tarifini ekleyeceğiz)
-const recipeDatabase = [
-  {
-    id: 1,
-    title: "Menemen",
-    ingredients: ["yumurta", "domates", "biber", "sıvı yağ", "tuz"],
-    instructions: "Biberleri ve domatesleri soteleyin, yumurtaları kırıp pişirin."
-  },
-  {
-    id: 2,
-    title: "Domates Çorbası",
-    ingredients: ["domates", "un", "tereyağı", "süt", "tuz"],
-    instructions: "Unu tereyağında kavurun, rendelenmiş domates ve sütü ekleyip kaynatın."
-  },
-  {
-    id: 3,
-    title: "Krep",
-    ingredients: ["un", "süt", "yumurta", "tuz", "sıvı yağ"],
-    instructions: "Malzemeleri çırpın, kızgın tavada arkalı önlü pişirin."
-  }
-];
+const availableIngredients = ['🥩 Köfte', '🧀 Peynir', '🥬 Marul', '🍅 Domates'];
 
-// Seçilen malzemeleri tutacağımız küme (Set)
-const selectedIngredients = new Set();
+let currentOrder = [];
+let playerPlate = [];
+let score = 0;
+let timeLeft = 30;
+let timerInterval;
 
-// HTML Elementlerini Yakalama
-const ingredientInput = document.getElementById("ingredientInput");
-const addBtn = document.getElementById("addBtn");
-const selectedBadges = document.getElementById("selectedBadges");
-const searchRecipesBtn = document.getElementById("searchRecipesBtn");
-const recipeGrid = document.getElementById("recipeGrid");
-
-// Malzeme Ekleme Fonksiyonu
-function addIngredient(name) {
-  const cleanName = name.trim().toLowerCase();
-  if (cleanName && !selectedIngredients.has(cleanName)) {
-    selectedIngredients.add(cleanName);
-    renderBadges();
-    ingredientInput.value = "";
-  }
+// Oyunu Başlat
+function startGame() {
+  score = 0;
+  timeLeft = 30;
+  document.getElementById('score').innerText = score;
+  document.getElementById('timer').innerText = timeLeft;
+  
+  generateNewOrder();
+  
+  clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    timeLeft--;
+    document.getElementById('timer').innerText = timeLeft;
+    if (timeLeft <= 0) {
+      clearInterval(timerInterval);
+      alert(`Süre Bitti! Toplam Skorun: ${score}`);
+      startGame();
+    }
+  }, 1000);
 }
 
-// Seçilen Malzemeleri Ekrana Rozet Olarak Basma
-function renderBadges() {
-  selectedBadges.innerHTML = "";
-  selectedIngredients.forEach((item) => {
-    const badge = document.createElement("div");
-    badge.className = "badge";
-    badge.innerHTML = `${item} <span onclick="removeIngredient('${item}')">&times;</span>`;
-    selectedBadges.appendChild(badge);
+// Rastgele Sipariş Üretme
+function generateNewOrder() {
+  currentOrder = ['🍞 Alt Ekmek'];
+  
+  // 2 ile 4 arası rastgele malzeme seç
+  const count = Math.floor(Math.random() * 3) + 2;
+  for (let i = 0; i < count; i++) {
+    const randomItem = availableIngredients[Math.floor(Math.random() * availableIngredients.length)];
+    currentOrder.push(randomItem);
+  }
+  
+  currentOrder.push('🍞 Üst Ekmek');
+  
+  // Ekrana Siparişi Yazma
+  const targetDiv = document.getElementById('targetOrder');
+  targetDiv.innerHTML = currentOrder.map(item => `<span>${item}</span>`).join(' ➔ ');
+  
+  resetPlate();
+}
+
+// Tabağa Malzeme Ekleme
+function addIngredient(item) {
+  playerPlate.push(item);
+  renderPlate();
+}
+
+// Tabağı Temizleme
+function resetPlate() {
+  playerPlate = [];
+  renderPlate();
+}
+
+// Tabağı Ekrana Çizme
+function renderPlate() {
+  const plateDiv = document.getElementById('burgerPlate');
+  plateDiv.innerHTML = '';
+  playerPlate.forEach(item => {
+    const div = document.createElement('div');
+    div.className = 'ingredient-item';
+    div.innerText = item;
+    plateDiv.appendChild(div);
   });
 }
 
-// Rozet Yanındaki (X) İle Malzeme Çıkarma
-function removeIngredient(name) {
-  selectedIngredients.delete(name);
-  renderBadges();
+// Siparişi Kontrol Etme
+function checkBurger() {
+  if (JSON.stringify(playerPlate) === JSON.stringify(currentOrder)) {
+    score += 10;
+    document.getElementById('score').innerText = score;
+    alert('Tebrikler! Doğru Sipariş +10 Puan 🎉');
+    generateNewOrder();
+  } else {
+    alert('Yanlış tarif veya sıralama! Tekrar dene ❌');
+  }
 }
 
-// Malzemelere Göre Tarif Bulma ve Uyum Oranı Hesaplama Mantığı
-function filterRecipes() {
-  recipeGrid.innerHTML = "";
-  const selectedArray = Array.from(selectedIngredients);
-
-  if (selectedArray.length === 0) {
-    recipeGrid.innerHTML = "<p>Lütfen önce elinizdeki malzemeleri ekleyin.</p>";
-    return;
-  }
-
-  // Eşleşme yüzdesi hesaplama
-  const results = recipeDatabase.map((recipe) => {
-    const matched = recipe.ingredients.filter((ing) => selectedIngredients.has(ing));
-    const matchPercentage = Math.round((matched.length / recipe.ingredients.length) * 100);
-    return { ...recipe, matchedCount: matched.length, matchPercentage };
-  }).filter((recipe) => recipe.matchedCount > 0);
-
-  // En yüksek uyum oranına göre sıralama
-  results.sort((a, b) => b.matchPercentage - a.matchPercentage);
-
-  if (results.length === 0) {
-    recipeGrid.innerHTML = "<p>Malzemelerinize uygun tarif bulunamadı.</p>";
-    return;
-  }
-
-  // Kartları HTML olarak ekrana basma
-  results.forEach((recipe) => {
-    const card = document.createElement("div");
-    card.className = "recipe-card";
-    card.innerHTML = `
-      <h3>${recipe.title}</h3>
-      <span class="match-rate">%${recipe.matchPercentage} Uyum</span>
-      <p><strong>Malzemeler:</strong> ${recipe.ingredients.join(", ")}</p>
-      <p style="margin-top: 8px;">${recipe.instructions}</p>
-    `;
-    recipeGrid.appendChild(card);
-  });
-}
-
-// Tıklama ve Enter Tuşu Dinleyicileri
-addBtn.addEventListener("click", () => addIngredient(ingredientInput.value));
-ingredientInput.addEventListener("keypress", (e) => {
-  if (e.key === "Enter") addIngredient(ingredientInput.value);
-});
-searchRecipesBtn.addEventListener("click", filterRecipes);
+// Sayfa yüklendiğinde oyunu başlat
+window.onload = startGame;
